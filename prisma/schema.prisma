@@ -13,9 +13,10 @@ model IgUser {
   igUserId        String   @unique                // IG business/creator user id
   username        String
   accessToken     String                          // encrypted token
-  tokenExpireAt   DateTime                        //IG Token Expire Date      
-  tokenCreatedAt  DateTime    
-  permission      Json    
+  tokenExpireDay  DateTime                        //IG Token Expire Date      
+  tokenCreatedAt  DateTime  
+  tokenExpireIn   Int
+  permissions     Json    
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

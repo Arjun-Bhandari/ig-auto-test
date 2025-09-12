@@ -28,7 +28,7 @@ export interface IgLongLivedTokenResponse {
     username?: string; // if fetched later
     accessToken: string;
     tokenCreatedAt: Date;
-    tokenExpireAt: Date;
-    expiresIn: number;
+    tokenExpireDay: Date;
+    tokenExpireIn: number;
     permissions?: string[];
   }

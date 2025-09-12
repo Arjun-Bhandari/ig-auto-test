@@ -94,19 +94,40 @@ export const exchangeCodeForIgTokens = async (
     const tokenExpireAt = new Date(
       tokenCreatedAt.getTime() + longLivedToken.expires_in * 1000
     );
-    // Db insert Here 
- 
-    return {
+    const permissionsArray = shortLivedToken.data[0].permissions
+    ? shortLivedToken.data[0].permissions.split(",")
+    : [];
+    //TODO Db insert Here 
+    const dbUsers = await prisma.igUser.upsert({
+      where: { igUserId: shortLivedToken.data[0].user_id },
+      update: {
+        accessToken: longLivedToken.access_token,
+        tokenExpireDay:tokenExpireAt,
+        tokenExpireIn : longLivedToken.expires_in,
+        tokenCreatedAt,
+        permissions: permissionsArray,
+      },
+      create: {
+        igUserId: shortLivedToken.data[0].user_id,
+        username: "", // need IG Graph call
+        accessToken: longLivedToken.access_token,
+        tokenExpireDay:tokenExpireAt,
+        tokenCreatedAt,
+        tokenExpireIn:longLivedToken.expires_in,
+        permissions: permissionsArray,
+      },
+    });
+    //Todo : Need to Remove logs 
+    console.log(dbUsers);
+    return ({
       igUserId: shortLivedToken.data[0].user_id,
-      username: "",
-      accessToken: longLivedToken.access_token,
-      tokenCreatedAt: tokenCreatedAt,
-      tokenExpireAt: tokenExpireAt,
-      expiresIn: longLivedToken.expires_in,
-      permissions: shortLivedToken.data[0].permissions
-        ? shortLivedToken.data[0].permissions.split(",")
-        : [],
-    };
+        username: "", // need IG Graph call
+        accessToken: longLivedToken.access_token,
+        tokenExpireDay:tokenExpireAt,
+        tokenCreatedAt,
+        tokenExpireIn:longLivedToken.expires_in,
+        permissions: permissionsArray,
+    });
   } catch (error) {
     throw new Error(
       `Instagram authentication failed: ${
@@ -117,7 +138,7 @@ export const exchangeCodeForIgTokens = async (
 };
 
 export const getSixtyDaysLivedIgAccessToken = async (
-  longLivedAccesstoken: string
+  longLivedAccesstoken: string, igUserId:string
 ): Promise<IgSixtyDaysTokenResponse> => {
   if (!longLivedAccesstoken) {
     throw new Error(
@@ -141,6 +162,21 @@ export const getSixtyDaysLivedIgAccessToken = async (
     }
 
     const successData = data as IgSixtyDaysTokenResponse;
+    const tokenCreatedAt = new Date();
+const tokenExpireAt = new Date(
+  tokenCreatedAt.getTime() + successData.expires_in * 1000
+);
+
+// update only token-related fields
+await prisma.igUser.update({
+  where: { igUserId },
+  data: {
+    accessToken: successData.access_token,
+    tokenCreatedAt,
+    tokenExpireDay:tokenExpireAt,
+    tokenExpireIn:successData.expires_in
+  },
+});
     return successData;
   } catch (error) {
     if (error instanceof Error) {
