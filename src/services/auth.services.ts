@@ -97,7 +97,7 @@ export const exchangeCodeForIgTokens = async (
     const permissionsArray = shortLivedToken.data[0].permissions
     ? shortLivedToken.data[0].permissions.split(",")
     : [];
-    //TODO Db insert Here 
+    // Db insert Here 
     const dbUsers = await prisma.igUser.upsert({
       where: { igUserId: shortLivedToken.data[0].user_id },
       update: {
