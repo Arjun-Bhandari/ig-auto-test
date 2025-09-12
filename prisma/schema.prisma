@@ -1,0 +1,44 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model IgUser {
+  id              String   @id @default(cuid())
+  igUserId        String   @unique                // IG business/creator user id
+  username        String
+  accessToken     String                          // encrypted token
+  tokenExpireAt   DateTime                        //IG Token Expire Date      
+  tokenCreatedAt  DateTime    
+  permission      Json    
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  rules           AutomationRule[]
+}
+
+
+model AutomationRule {
+  id         String   @id @default(cuid())
+  igUserId   String
+  mediaId    String                                // Post/Reel id
+  rule       Json                                  // conditions + actions JSON
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  account    IgUser @relation(fields: [igUserId], references: [igUserId])
+}
+
+
+model Template {
+  id         String   @id @default(cuid())
+  name       String
+  body       String                                // Handlebars template body
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
