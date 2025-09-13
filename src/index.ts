@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import { igAuthroute } from "./routes/igauth.routes";
 import { env } from "./config/env";
+import fastifyCors from '@fastify/cors'
 import {
   ZodTypeProvider,
   serializerCompiler,
@@ -21,6 +22,12 @@ const fastify = Fastify({
     }
   }
 }).withTypeProvider<ZodTypeProvider>();
+
+ fastify.register(fastifyCors,{
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
+})
 fastify.setValidatorCompiler(validatorCompiler);
 fastify.setSerializerCompiler(serializerCompiler);
 fastify.register(igAuthroute, { prefix: "/api" });

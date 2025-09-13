@@ -10,13 +10,13 @@ datasource db {
 
 model IgUser {
   id              String   @id @default(cuid())
-  igUserId        String   @unique                // IG business/creator user id
+  igUserId        BigInt   @unique                // IG business/creator user id
   username        String
   accessToken     String                          // encrypted token
   tokenExpireDay  DateTime                        //IG Token Expire Date      
   tokenCreatedAt  DateTime  
   tokenExpireIn   Int
-  permissions     Json    
+  permissions     String[]   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -26,7 +26,7 @@ model IgUser {
 
 model AutomationRule {
   id         String   @id @default(cuid())
-  igUserId   String
+  igUserId   BigInt
   mediaId    String                                // Post/Reel id
   rule       Json                                  // conditions + actions JSON
   createdAt  DateTime @default(now())

@@ -10,7 +10,7 @@ import {
 } from "../types/igauth";
 let IGCLIENTID = env.IG_CLIENT_ID;
 let IGCLIENTSECRET = env.IG_CLIENT_SECRET;
-let SERVERURL = env.SERVER_URL;
+let FRONTENDURL= env.FRONTEND_URL
 
 export const getShortLivedIgAccesstoken = async (
   code: string
@@ -22,8 +22,10 @@ export const getShortLivedIgAccesstoken = async (
   const formData = new URLSearchParams();
   formData.append("client_id", IGCLIENTID);
   formData.append("client_secret", IGCLIENTSECRET);
-  formData.append("redirect_uri", `${SERVERURL}/api/igauth/callback`);
+  formData.append("grant_type","authorization_code");
+  formData.append("redirect_uri", `${FRONTENDURL}/auth/instagram/callback`);
   formData.append("code", code);
+  
   try {
     const response: Response = await fetch(
       "https://api.instagram.com/oauth/access_token",
@@ -40,7 +42,7 @@ export const getShortLivedIgAccesstoken = async (
       );
     }
     const successData = data as IgShortLivedSuccessResponse;
-
+logger.info(`DATA Log on getShortLivedIGAccesstoken ${successData}`)
     return successData;
   } catch (error) {
     if (error instanceof Error) {
@@ -88,46 +90,46 @@ export const exchangeCodeForIgTokens = async (
   }
   try {
     const shortLivedToken = await getShortLivedIgAccesstoken(code);
+    logger.info(`Data Reached Exchange Code Block: shortLivedToken: ${shortLivedToken}`, )
     const longLivedToken = await getLongLivedIgAccessToken(
-      shortLivedToken.data[0].access_token
+      shortLivedToken.access_token
     );
+
     const tokenCreatedAt = new Date();
     const tokenExpireAt = new Date(
       tokenCreatedAt.getTime() + longLivedToken.expires_in * 1000
     );
-    const permissionsArray = shortLivedToken.data[0].permissions
-    ? shortLivedToken.data[0].permissions.split(",")
-    : [];
+  
     // Db insert Here 
     const dbUsers = await prisma.igUser.upsert({
-      where: { igUserId: shortLivedToken.data[0].user_id },
+      where: { igUserId: shortLivedToken.user_id },
       update: {
         accessToken: longLivedToken.access_token,
         tokenExpireDay:tokenExpireAt,
         tokenExpireIn : longLivedToken.expires_in,
         tokenCreatedAt,
-        permissions: permissionsArray,
+        permissions: shortLivedToken.permissions || [],
       },
       create: {
-        igUserId: shortLivedToken.data[0].user_id,
+        igUserId: shortLivedToken.user_id,
         username: "", // need IG Graph call
         accessToken: longLivedToken.access_token,
         tokenExpireDay:tokenExpireAt,
         tokenCreatedAt,
         tokenExpireIn:longLivedToken.expires_in,
-        permissions: permissionsArray,
+        permissions: shortLivedToken.permissions || [],
       },
     });
     //Todo : Need to Remove logs 
     logger.info(dbUsers,"Data Received after inserting into Db")
     return ({
-      igUserId: shortLivedToken.data[0].user_id,
+      igUserId: shortLivedToken.user_id,
         username: "", // need IG Graph call
         accessToken: longLivedToken.access_token,
         tokenExpireDay:tokenExpireAt,
         tokenCreatedAt,
         tokenExpireIn:longLivedToken.expires_in,
-        permissions: permissionsArray,
+        permissions: shortLivedToken.permissions || [],
     });
   } catch (error) {
     logger.error(error,"Error form exchange code Fro Ig Tokens")
@@ -140,7 +142,7 @@ export const exchangeCodeForIgTokens = async (
 };
 
 export const getSixtyDaysLivedIgAccessToken = async (
-  longLivedAccesstoken: string, igUserId:string
+  longLivedAccesstoken: string, igUserId:number
 ): Promise<IgSixtyDaysTokenResponse> => {
   if (!longLivedAccesstoken) {
     throw new Error(

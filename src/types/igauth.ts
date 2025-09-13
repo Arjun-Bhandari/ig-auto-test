@@ -4,12 +4,11 @@ export interface IgAuthError{
     error_message:string;
 }
 
-export interface IgShortLivedSuccessResponse{
-    data:Array<{
-        access_token:string;
-        user_id:string;
-        permissions:string;
-    }>;
+export interface IgShortLivedSuccessResponse{ 
+access_token:string;
+user_id:number;
+permissions:string[];
+  
 }
 
 export interface IgLongLivedTokenResponse {
@@ -24,7 +23,7 @@ export interface IgLongLivedTokenResponse {
   }
 
   export interface UnifiedIgAuthResponse {
-    igUserId: string;
+    igUserId: number;
     username?: string; // if fetched later
     accessToken: string;
     tokenCreatedAt: Date;
