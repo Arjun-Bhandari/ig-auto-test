@@ -21,7 +21,7 @@ export const getShortLivedIgAccesstoken = async (
   const formData = new URLSearchParams();
   formData.append("client_id", IGCLIENTID);
   formData.append("client_secret", IGCLIENTSECRET);
-  formData.append("redirect_uri", `${SERVERURL}/igauth/callback`);
+  formData.append("redirect_uri", `${SERVERURL}/api/igauth/callback`);
   formData.append("code", code);
   try {
     const response: Response = await fetch(
