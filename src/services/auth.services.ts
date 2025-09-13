@@ -1,5 +1,6 @@
 import { prisma } from "../lib/db";
 import { env } from "../config/env";
+import { logger } from "../config/logger";
 import {
   IgAuthError,
   IgShortLivedSuccessResponse,
@@ -118,7 +119,7 @@ export const exchangeCodeForIgTokens = async (
       },
     });
     //Todo : Need to Remove logs 
-    console.log(dbUsers);
+    logger.info(dbUsers,"Data Received after inserting into Db")
     return ({
       igUserId: shortLivedToken.data[0].user_id,
         username: "", // need IG Graph call
@@ -129,6 +130,7 @@ export const exchangeCodeForIgTokens = async (
         permissions: permissionsArray,
     });
   } catch (error) {
+    logger.error(error,"Error form exchange code Fro Ig Tokens")
     throw new Error(
       `Instagram authentication failed: ${
         error instanceof Error ? error.message : "Unknown error"
