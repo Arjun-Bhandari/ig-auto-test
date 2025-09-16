@@ -11,7 +11,10 @@ datasource db {
 model IgUser {
   id              String   @id @default(cuid())
   igUserId        BigInt   @unique                // IG business/creator user id
-  username        String
+  username        String?
+  name            String?
+  profilePictureUrl String?
+  accountType     String?
   accessToken     String                          // encrypted token
   tokenExpireDay  DateTime                        //IG Token Expire Date      
   tokenCreatedAt  DateTime  

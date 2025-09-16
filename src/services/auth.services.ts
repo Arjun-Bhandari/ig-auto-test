@@ -7,10 +7,11 @@ import {
   IgLongLivedTokenResponse,
   IgSixtyDaysTokenResponse,
   UnifiedIgAuthResponse,
+  IgUserInfoResponse,
 } from "../types/igauth";
 let IGCLIENTID = env.IG_CLIENT_ID;
 let IGCLIENTSECRET = env.IG_CLIENT_SECRET;
-let FRONTENDURL= env.FRONTEND_URL
+let FRONTENDURL = env.FRONTEND_URL;
 
 export const getShortLivedIgAccesstoken = async (
   code: string
@@ -22,10 +23,10 @@ export const getShortLivedIgAccesstoken = async (
   const formData = new URLSearchParams();
   formData.append("client_id", IGCLIENTID);
   formData.append("client_secret", IGCLIENTSECRET);
-  formData.append("grant_type","authorization_code");
+  formData.append("grant_type", "authorization_code");
   formData.append("redirect_uri", `${FRONTENDURL}/auth/instagram/callback`);
   formData.append("code", code);
-  
+
   try {
     const response: Response = await fetch(
       "https://api.instagram.com/oauth/access_token",
@@ -42,7 +43,7 @@ export const getShortLivedIgAccesstoken = async (
       );
     }
     const successData = data as IgShortLivedSuccessResponse;
-logger.info(`DATA Log on getShortLivedIGAccesstoken ${successData}`)
+    logger.info(`DATA Log on getShortLivedIGAccesstoken ${successData}`);
     return successData;
   } catch (error) {
     if (error instanceof Error) {
@@ -82,6 +83,28 @@ export const getLongLivedIgAccessToken = async (
     throw error;
   }
 };
+export const fetchIgUserInfo = async (
+  accessToken: string
+): Promise<IgUserInfoResponse> => {
+  if (!accessToken) {
+    throw new Error("Access Token Required to Fetched User Data");
+  }
+  const response = await fetch(
+    `https://graph.instagram.com/me?fields=id,username,name,profile_picture_url,account_type&access_token=${accessToken}`,
+    {
+      method: "GET",
+    }
+  );
+  const data = await response.json();
+  if (!response.ok) {
+    const errorData = data as IgAuthError;
+    throw new Error(
+      `ERROR : Getting IG User Info  ig response Failed ${errorData}`
+    );
+  }
+  const userData = data as IgUserInfoResponse;
+  return userData;
+};
 export const exchangeCodeForIgTokens = async (
   code: string
 ): Promise<UnifiedIgAuthResponse> => {
@@ -90,49 +113,58 @@ export const exchangeCodeForIgTokens = async (
   }
   try {
     const shortLivedToken = await getShortLivedIgAccesstoken(code);
-    logger.info(`Data Reached Exchange Code Block: shortLivedToken: ${shortLivedToken}`, )
+    logger.info(
+      `Data Reached Exchange Code Block: shortLivedToken: ${shortLivedToken}`
+    );
     const longLivedToken = await getLongLivedIgAccessToken(
       shortLivedToken.access_token
     );
-
+    const userData = await fetchIgUserInfo(longLivedToken.access_token);
+    logger.info(`User Data ${userData}`)
     const tokenCreatedAt = new Date();
     const tokenExpireAt = new Date(
       tokenCreatedAt.getTime() + longLivedToken.expires_in * 1000
     );
-  
-    // Db insert Here 
+
+    // Db insert Here
     const dbUsers = await prisma.igUser.upsert({
-      where: { igUserId: shortLivedToken.user_id },
+      where: { igUserId: BigInt(shortLivedToken.user_id) },
       update: {
         accessToken: longLivedToken.access_token,
-        tokenExpireDay:tokenExpireAt,
-        tokenExpireIn : longLivedToken.expires_in,
+        tokenExpireDay: tokenExpireAt,
+        tokenExpireIn: longLivedToken.expires_in,
         tokenCreatedAt,
         permissions: shortLivedToken.permissions || [],
       },
       create: {
-        igUserId: shortLivedToken.user_id,
-        username: "", // need IG Graph call
+        igUserId: BigInt(shortLivedToken.user_id),
+        username: userData.username || null,
+        name: userData.name || null,
+        profilePictureUrl: userData.profile_picture_url || null,
+        accountType: userData.account_type || null,
         accessToken: longLivedToken.access_token,
-        tokenExpireDay:tokenExpireAt,
+        tokenExpireDay: tokenExpireAt,
         tokenCreatedAt,
-        tokenExpireIn:longLivedToken.expires_in,
+        tokenExpireIn: longLivedToken.expires_in,
         permissions: shortLivedToken.permissions || [],
       },
     });
-    //Todo : Need to Remove logs 
-    logger.info(dbUsers,"Data Received after inserting into Db")
-    return ({
-      igUserId: shortLivedToken.user_id,
-        username: "", // need IG Graph call
-        accessToken: longLivedToken.access_token,
-        tokenExpireDay:tokenExpireAt,
-        tokenCreatedAt,
-        tokenExpireIn:longLivedToken.expires_in,
-        permissions: shortLivedToken.permissions || [],
-    });
+    //Todo : Need to Remove logs
+    logger.info(dbUsers, "Data Received after inserting into Db");
+    return {
+      igUserId: String(shortLivedToken.user_id),
+      username: userData.username || "",
+      name: userData.name || "",
+      profilePictureUrl: userData.profile_picture_url || "",
+      accountType: userData.account_type,
+      accessToken: longLivedToken.access_token,
+      tokenExpireDay: tokenExpireAt,
+      tokenCreatedAt,
+      tokenExpireIn: longLivedToken.expires_in,
+      permissions: shortLivedToken.permissions || [],
+    };
   } catch (error) {
-    logger.error(error,"Error form exchange code Fro Ig Tokens")
+    logger.error(error, "Error form exchange code Fro Ig Tokens");
     throw new Error(
       `Instagram authentication failed: ${
         error instanceof Error ? error.message : "Unknown error"
@@ -142,7 +174,8 @@ export const exchangeCodeForIgTokens = async (
 };
 
 export const getSixtyDaysLivedIgAccessToken = async (
-  longLivedAccesstoken: string, igUserId:number
+  longLivedAccesstoken: string,
+  igUserId: number
 ): Promise<IgSixtyDaysTokenResponse> => {
   if (!longLivedAccesstoken) {
     throw new Error(
@@ -167,20 +200,20 @@ export const getSixtyDaysLivedIgAccessToken = async (
 
     const successData = data as IgSixtyDaysTokenResponse;
     const tokenCreatedAt = new Date();
-const tokenExpireAt = new Date(
-  tokenCreatedAt.getTime() + successData.expires_in * 1000
-);
+    const tokenExpireAt = new Date(
+      tokenCreatedAt.getTime() + successData.expires_in * 1000
+    );
 
-// update only token-related fields
-await prisma.igUser.update({
-  where: { igUserId },
-  data: {
-    accessToken: successData.access_token,
-    tokenCreatedAt,
-    tokenExpireDay:tokenExpireAt,
-    tokenExpireIn:successData.expires_in
-  },
-});
+    // update only token-related fields
+    await prisma.igUser.update({
+      where: { igUserId },
+      data: {
+        accessToken: successData.access_token,
+        tokenCreatedAt,
+        tokenExpireDay: tokenExpireAt,
+        tokenExpireIn: successData.expires_in,
+      },
+    });
     return successData;
   } catch (error) {
     if (error instanceof Error) {

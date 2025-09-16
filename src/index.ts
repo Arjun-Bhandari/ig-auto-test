@@ -1,5 +1,6 @@
 import Fastify from "fastify";
 import { igAuthroute } from "./routes/igauth.routes";
+import { igMediaRoute } from "./routes/igmedia.routes";
 import { env } from "./config/env";
 import fastifyCors from '@fastify/cors'
 import {
@@ -31,6 +32,7 @@ const fastify = Fastify({
 fastify.setValidatorCompiler(validatorCompiler);
 fastify.setSerializerCompiler(serializerCompiler);
 fastify.register(igAuthroute, { prefix: "/api" });
+fastify.register(igMediaRoute, { prefix: "/api" });
 
 fastify.get("/", (request, reply) => {
   reply.send("Welcome to Insta automation Tool");

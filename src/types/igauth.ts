@@ -23,11 +23,22 @@ export interface IgLongLivedTokenResponse {
   }
 
   export interface UnifiedIgAuthResponse {
-    igUserId: number;
-    username?: string; // if fetched later
+    igUserId: string;
+    username?: string; 
+    name?: string; 
+    profilePictureUrl?: string; 
+    accountType?: string; 
     accessToken: string;
     tokenCreatedAt: Date;
     tokenExpireDay: Date;
     tokenExpireIn: number;
     permissions?: string[];
+  }
+
+  export interface IgUserInfoResponse{
+    id: number;
+    username: string;
+    name:string;
+    profile_picture_url:string;
+    account_type:string;
   }
