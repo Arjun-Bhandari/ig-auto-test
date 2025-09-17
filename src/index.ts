@@ -2,7 +2,13 @@ import Fastify from "fastify";
 import { igAuthroute } from "./routes/igauth.routes";
 import { igMediaRoute } from "./routes/igmedia.routes";
 import { env } from "./config/env";
+import { presetsRoute } from "./routes/presets.routes";
+import { automationRoute } from "./routes/automation.routes";
+import { templatesRoute } from "./routes/templates.routes";
 import fastifyCors from '@fastify/cors'
+import { webhookRoute } from "./routes/webhook.routes";
+import { webhookSubscribeRoute } from "./routes/webhook-subscribe.routes";
+import { startWorkers } from "./workers/queues";
 import {
   ZodTypeProvider,
   serializerCompiler,
@@ -10,6 +16,7 @@ import {
   jsonSchemaTransform,
 } from "fastify-type-provider-zod";
 import { logger } from "./config/logger";
+
 const fastify = Fastify({
   logger: {
     level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
@@ -33,6 +40,12 @@ fastify.setValidatorCompiler(validatorCompiler);
 fastify.setSerializerCompiler(serializerCompiler);
 fastify.register(igAuthroute, { prefix: "/api" });
 fastify.register(igMediaRoute, { prefix: "/api" });
+fastify.register(presetsRoute, { prefix: "/api" });
+fastify.register(automationRoute, { prefix: "/api" });
+fastify.register(templatesRoute, { prefix: "/api" });
+fastify.register(webhookRoute, { prefix: "/api" });
+fastify.register(webhookSubscribeRoute, { prefix: "/api" });
+startWorkers();
 
 fastify.get("/", (request, reply) => {
   reply.send("Welcome to Insta automation Tool");

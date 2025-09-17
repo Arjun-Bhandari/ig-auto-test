@@ -90,7 +90,7 @@ export const fetchIgUserInfo = async (
     throw new Error("Access Token Required to Fetched User Data");
   }
   const response = await fetch(
-    `https://graph.instagram.com/me?fields=id,username,name,profile_picture_url,account_type&access_token=${accessToken}`,
+    `https://graph.instagram.com/me?fields=id,username,name,profile_picture_url,account_type,user_id&access_token=${accessToken}`,
     {
       method: "GET",
     }
@@ -128,7 +128,7 @@ export const exchangeCodeForIgTokens = async (
 
     // Db insert Here
     const dbUsers = await prisma.igUser.upsert({
-      where: { igUserId: BigInt(shortLivedToken.user_id) },
+      where: { igUserId: BigInt(userData.user_id) },
       update: {
         accessToken: longLivedToken.access_token,
         tokenExpireDay: tokenExpireAt,
@@ -137,7 +137,7 @@ export const exchangeCodeForIgTokens = async (
         permissions: shortLivedToken.permissions || [],
       },
       create: {
-        igUserId: BigInt(shortLivedToken.user_id),
+        igUserId: BigInt(userData.user_id),
         username: userData.username || null,
         name: userData.name || null,
         profilePictureUrl: userData.profile_picture_url || null,
@@ -152,7 +152,7 @@ export const exchangeCodeForIgTokens = async (
     //Todo : Need to Remove logs
     logger.info(dbUsers, "Data Received after inserting into Db");
     return {
-      igUserId: String(shortLivedToken.user_id),
+      igUserId: String(userData.user_id),
       username: userData.username || "",
       name: userData.name || "",
       profilePictureUrl: userData.profile_picture_url || "",

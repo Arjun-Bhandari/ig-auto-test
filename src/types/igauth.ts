@@ -37,6 +37,7 @@ export interface IgLongLivedTokenResponse {
 
   export interface IgUserInfoResponse{
     id: number;
+    user_id: number;
     username: string;
     name:string;
     profile_picture_url:string;
