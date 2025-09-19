@@ -12,8 +12,11 @@ export const createRuleSchema = z.object({
       mediaId: z.string().min(1),
       match: z
         .object({
+          // Support both formats for backward compatibility
           contains: z.array(z.string()).min(1).optional(),
+          include: z.array(z.string()).min(1).optional(), // Client format
           regex: z.string().optional(),
+          // exclude: z.array(z.string()).min(1).optional(), // Commented out as requested
         })
         .optional(),
     }),
@@ -22,6 +25,9 @@ export const createRuleSchema = z.object({
         z.object({
           type: z.literal("comment_reply"),
           text: z.string().min(1),
+          // Support client-side fields
+          responses: z.array(z.string()).optional(),
+          randomize: z.boolean().optional(),
         }),
         z.object({
           type: z.literal("send_dm"),

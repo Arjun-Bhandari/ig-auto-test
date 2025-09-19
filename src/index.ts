@@ -8,7 +8,7 @@ import { templatesRoute } from "./routes/templates.routes";
 import fastifyCors from '@fastify/cors'
 import { webhookRoute } from "./routes/webhook.routes";
 import { webhookSubscribeRoute } from "./routes/webhook-subscribe.routes";
-import { startWorkers } from "./workers/queues";
+import { startWorkers, stopWorkers } from "./workers/queues";
 import {
   ZodTypeProvider,
   serializerCompiler,
@@ -16,6 +16,7 @@ import {
   jsonSchemaTransform,
 } from "fastify-type-provider-zod";
 import { logger } from "./config/logger";
+import { prisma } from "./lib/db";
 
 const fastify = Fastify({
   logger: {
@@ -45,8 +46,19 @@ fastify.register(automationRoute, { prefix: "/api" });
 fastify.register(templatesRoute, { prefix: "/api" });
 fastify.register(webhookRoute, { prefix: "/api" });
 fastify.register(webhookSubscribeRoute, { prefix: "/api" });
-startWorkers();
+// startWorkers();
+const shutdown = async()=>{
+  try{
+    await stopWorkers();
+    await fastify.close();
+    await prisma.$disconnect();
+  }finally{
+    process.exit(0);
+  }
+}
 
+process.on("SIGINT",()=>shutdown());
+process.on("SIGTERM",()=>shutdown());
 fastify.get("/", (request, reply) => {
   reply.send("Welcome to Insta automation Tool");
 });

@@ -30,6 +30,7 @@ model IgUser {
 model AutomationRule {
   id         String   @id @default(cuid())
   igUserId   BigInt
+  templateId String
   mediaId    String                                // Post/Reel id
   rule       Json                                  // conditions + actions JSON
   createdAt  DateTime @default(now())

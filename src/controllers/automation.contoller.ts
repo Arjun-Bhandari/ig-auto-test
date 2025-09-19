@@ -8,6 +8,7 @@ export const createAutomationController = async (
   reply: FastifyReply
 ) => {
   const { igUserId, mediaId, templateId, rule } = request.body;
+  
   const created = await createAutomationRule({
     igUserId,
     mediaId,

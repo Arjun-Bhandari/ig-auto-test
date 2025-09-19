@@ -23,7 +23,7 @@ export const receiveWebhookController = async (
   reply: FastifyReply
 ) => {
   try {
-    // Optional signature verification if raw body available
+  
     const header = request.headers["x-hub-signature-256"] as string | undefined;
     const rawBody = (request as any).rawBody as string | undefined;
     if (process.env.IG_CLIENT_SECRET && header && rawBody) {
@@ -41,7 +41,7 @@ logger.info({body}, "Webhook received");
       for (const change of entry.changes ?? []) {
         if (change.field === "comments") {
           const value: any = change.value ?? {};
-          await enqueueCommentEvent({
+          const jobPayload = {
             igUserId: igUserIdStr,
             mediaId: String(value.media?.id || value.media_id || ""),
             commentId: String(value.id || ""),
@@ -50,7 +50,10 @@ logger.info({body}, "Webhook received");
             timestamp: value.created_time
               ? new Date(value.created_time * 1000).toISOString()
               : new Date().toISOString(),
-          });
+          };
+          logger.info({ jobPayload }, "Processing comment webhook");
+          await enqueueCommentEvent(jobPayload);
+          logger.info("Comment event enqueued successfully");
         }
       }
     }

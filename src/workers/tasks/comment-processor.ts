@@ -30,12 +30,16 @@ const replyToComment = async (accessToken: string, commentId: string, message: s
 
 export const runCommentProcessor = async (job: Job<CommentJobPayload>) => {
   const { igUserId, mediaId, text, fromUserId, commentId } = job.data;
-console.log("runCommentProcessor", job.data);
+  logger.info({ jobData: job.data }, "Processing comment job");
+  
   const rules = await prisma.automationRule.findMany({
     where: { igUserId: BigInt(igUserId), mediaId },
   });
-  logger.info({ rules }, "rules");
-  if (!rules.length) return;
+  logger.info({ rulesCount: rules.length }, "Found automation rules");
+  if (!rules.length) {
+    logger.info({ igUserId, mediaId }, "No automation rules found for this media");
+    return;
+  }
 
   // Load token once
   const igUser = await prisma.igUser.findUnique({
@@ -52,12 +56,33 @@ console.log("runCommentProcessor", job.data);
     const trigger = rule?.trigger ?? {};
     const actions = Array.isArray(rule?.actions) ? rule.actions : [];
 
-    if (trigger.type !== "comment_created") continue;
-    if (trigger.mediaId && trigger.mediaId !== mediaId) continue;
+    logger.info({ rule, trigger, actions }, "Processing automation rule");
+
+    if (trigger.type !== "comment_created") {
+      logger.info({ triggerType: trigger.type }, "Skipping rule - wrong trigger type");
+      continue;
+    }
+    if (trigger.mediaId && trigger.mediaId !== mediaId) {
+      logger.info({ triggerMediaId: trigger.mediaId, commentMediaId: mediaId }, "Skipping rule - mediaId mismatch");
+      continue;
+    }
 
     const contains = trigger.match?.contains as string[] | undefined;
     const regex = trigger.match?.regex as string | undefined;
-    if (!matchText(text || "", contains, regex)) continue;
+    const include = trigger.match?.include as string[] | undefined;
+    // const exclude = trigger.match?.exclude as string[] | undefined; // Commented out as requested
+    
+    // Use include format if available, fallback to contains format
+    const keywordsToMatch = include || contains;
+    
+    logger.info({ text, keywordsToMatch, regex }, "Evaluating text match");
+    const textMatches = matchText(text || "", keywordsToMatch, regex);
+    logger.info({ textMatches }, "Text match result");
+    
+    if (!textMatches) {
+      logger.info("Skipping rule - text doesn't match keywords");
+      continue;
+    }
     logger.info({ actions }, "actions");
     for (const action of actions) {
       if (action.type === "comment_reply") {

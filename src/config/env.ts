@@ -11,6 +11,7 @@ export const envSchema = z.object({
     IG_CLIENT_SECRET:z.string().min(1, "IG_CLIENT_SECRET is required"),
     FRONTEND_URL: z.string().url("FRONTEND_URL must be a valid URL"),
     SERVER_URL: z.string().url("SERVER_URL must be a valid URL"),
+    WEBHOOK_VERIFY_TOKEN: z.string().min(1, "WEBHOOK_VERIFY_TOKEN is required"),
   });
 
 

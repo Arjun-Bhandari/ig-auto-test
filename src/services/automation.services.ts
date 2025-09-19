@@ -12,6 +12,7 @@ export const createAutomationRule = async (params: {
     data: {
       igUserId: params.igUserId,
       mediaId: params.mediaId,
+      templateId: params.templateId,
       rule: params.rule as unknown as any, // Prisma Json
     },
   });

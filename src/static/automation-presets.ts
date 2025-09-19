@@ -1,23 +1,35 @@
-export interface AutomationPreset {
-  id: string;
-  label: string;
-  type: "comment-reply" | "comment-reply+dm";
-  description?: string;
-}
-
-export const AUTOMATION_PRESETS: AutomationPreset[] = [
+// src/static/automation-presets.ts
+export const AUTOMATION_PRESETS = [
   {
     id: "comment-reply",
-    label: "Reply to Comment",
+    title: "Reply to Comment",
+    description: "Automatically reply to comments that match keywords",
     type: "comment-reply",
-    description: "Automatically reply to comments that match keywords or regex.",
+    icon: "MessageCircle",
+    goals: ["Grow Engagement"],
+    triggers: ["Comment"],
+    templateConfig: {
+      hasKeywords: true,
+      hasCustomMessage: true,
+      hasRandomMessage: true,
+      hasMediaSelection: true
+    }
   },
   {
-    id: "comment-reply+dm",
-    label: "Reply to Comment + Send DM",
+    id: "comment-reply-dm",
+    title: "Reply to Comment + Send DM", 
+    description: "Reply publicly and follow up with a DM",
     type: "comment-reply+dm",
-    description: "Reply publicly and follow up with a DM that can include a link button.",
-  },
+    icon: "MessageSquare",
+    goals: ["Grow Engagement", "Grow Conversion"],
+    triggers: ["Comment"],
+    templateConfig: {
+      hasKeywords: true,
+      hasCustomMessage: true,
+      hasRandomMessage: true,
+      hasMediaSelection: true,
+      hasDmMessage: true,
+      hasDmButtons: true
+    }
+  }
 ];
-
-

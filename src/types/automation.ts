@@ -4,13 +4,18 @@ export interface CommentTrigger {
     mediaId: string;
     match?: {
       contains?: string[];
+      include?: string[]; // Client format
       regex?: string;
+      // exclude?: string[]; // Commented out as requested
     };
   }
   
   export interface ActionCommentReply {
     type: "comment_reply";
     text: string;
+    // Support client-side fields
+    responses?: string[];
+    randomize?: boolean;
   }
   
   export interface ActionSendDM {
@@ -33,7 +38,7 @@ export interface CommentTrigger {
   
   export interface AutomationRecord {
     id: string;
-    igUserId: string; // expose as string
+    igUserId: string; 
     mediaId: string;
     templateId: string;
     rule: AutomationRulePayload;
