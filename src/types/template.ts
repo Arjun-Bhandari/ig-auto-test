@@ -12,7 +12,7 @@ export interface FlowNode {
   }
   
   export interface TemplateBody {
-    type: "comment-reply" | "comment-reply+dm";
+    type: "comment-reply" | "comment-reply-dm";
     nodes: FlowNode[];
     edges: FlowEdge[];
   }

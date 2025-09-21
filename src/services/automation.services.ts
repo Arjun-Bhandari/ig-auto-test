@@ -5,12 +5,14 @@ import { AutomationRulePayload, AutomationRecord } from "../types/automation";
 export const createAutomationRule = async (params: {
   igUserId: bigint;
   mediaId: string;
+  name: string;
   templateId: string;
   rule: AutomationRulePayload;
 }): Promise<AutomationRecord> => {
   const created = await prisma.automationRule.create({
     data: {
       igUserId: params.igUserId,
+      name: params.name,
       mediaId: params.mediaId,
       templateId: params.templateId,
       rule: params.rule as unknown as any, // Prisma Json

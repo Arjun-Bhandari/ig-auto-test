@@ -5,6 +5,7 @@ import { z } from "zod";
 export const createRuleSchema = z.object({
   igUserId: z.string().transform((v) => BigInt(v)), // BigInt for DB
   mediaId: z.string().min(1),
+  name: z.string().min(1),
   templateId: z.string().min(1),
   rule: z.object({
     trigger: z.object({

@@ -14,14 +14,14 @@ export const flowEdgeSchema = z.object({
 });
 
 export const templateBodySchema = z.object({
-  type: z.enum(["comment-reply", "comment-reply+dm"]),
+  type: z.enum(["comment-reply", "comment-reply-dm"]),
   nodes: z.array(flowNodeSchema),
   edges: z.array(flowEdgeSchema),
 });
 
 export const createTemplateSchema = z.object({
   name: z.string().min(1),
-  type: z.enum(["comment-reply", "comment-reply+dm"]),
+  type: z.enum(["comment-reply", "comment-reply-dm"]),
   body: templateBodySchema,
 });
 
