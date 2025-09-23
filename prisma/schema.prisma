@@ -23,28 +23,36 @@ model IgUser {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  rules           AutomationRule[]
+  rules           Automation[]
 }
 
 
-model AutomationRule {
-  id         String   @id @default(cuid())
-  igUserId   BigInt
-  name       String
-  templateId String
-  mediaId    String                                // Post/Reel id
-  rule       Json                                  // conditions + actions JSON
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+model Automation {
+  id                String   @id @default(cuid())
+  igUserId          BigInt
+  name              String
+  mediaId           String                                // Post/Reel id
+  rule              Json                                  // Processed automation rule (trigger + actions)
+  status            AutomationStatus @default(DRAFT)      // DRAFT, ACTIVE, PAUSED, ARCHIVED
+  isActive          Boolean  @default(false)              // Quick active/inactive toggle
+  lastExecutedAt    DateTime?                             // When automation last ran
+  executionCount    Int      @default(0)                  // How many times it has executed
+  errorCount        Int      @default(0)                  // Error tracking
+  lastErrorAt       DateTime?                             // Last error timestamp
+  lastErrorMessage  String?                               // Last error message
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  account    IgUser @relation(fields: [igUserId], references: [igUserId])
+  // Relations
+  account    IgUser   @relation(fields: [igUserId], references: [igUserId])
 }
 
 
-model Template {
-  id         String   @id @default(cuid())
-  name       String
-  body       String                                // Handlebars template body
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+
+
+enum AutomationStatus {
+  DRAFT     // Being created/edited
+  ACTIVE    // Running and processing
+  PAUSED    // Temporarily stopped
+  ARCHIVED  // Deleted but kept for history
 }
