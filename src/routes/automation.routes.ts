@@ -32,20 +32,22 @@ import {
   getAutomationController,
   updateAutomationStatusController,
   updateAutomationExecutionController,
-  deleteAutomationController
+  deleteAutomationController,
+  updateAutomationController
 } from "../controllers/automation.contoller";
 import { 
   createRuleSchema,
   listAutomationQuerySchema,
   getAutomationParamsSchema,
   updateAutomationStatusSchema,
-  updateExecutionSchema
+  updateExecutionSchema,
+  updateAutomationSchema
 } from "../schema/automation";
 
 export const automationRoute = async (app: FastifyInstance) => {
   // Create automation rule
   app.post(
-    "/automation-rules",
+    "/automation",
     {
       schema: { 
         body: createRuleSchema,
@@ -57,7 +59,7 @@ export const automationRoute = async (app: FastifyInstance) => {
 
   // List automation rules by user with filtering
   app.get(
-    "/automation-rules",
+    "/automation",
     {
       schema: {
         querystring: listAutomationQuerySchema,
@@ -69,7 +71,7 @@ export const automationRoute = async (app: FastifyInstance) => {
 
   // Get automation by ID
   app.get(
-    "/automation-rules/:id",
+    "/automation/:id",
     {
       schema: {
         params: getAutomationParamsSchema,
@@ -81,7 +83,7 @@ export const automationRoute = async (app: FastifyInstance) => {
 
   // Update automation status (DRAFT, ACTIVE, PAUSED, ARCHIVED)
   app.patch(
-    "/automation-rules/:id/status",
+    "/automation/:id/status",
     {
       schema: { 
         params: getAutomationParamsSchema,
@@ -94,7 +96,7 @@ export const automationRoute = async (app: FastifyInstance) => {
 
   // Update automation execution tracking
   app.patch(
-    "/automation-rules/:id/execution",
+    "/automation/:id/execution",
     {
       schema: { 
         body: updateExecutionSchema,
@@ -104,9 +106,20 @@ export const automationRoute = async (app: FastifyInstance) => {
     updateAutomationExecutionController
   );
 
+  app.put(
+    "/automation/:id",
+    {
+      schema: {
+        body: updateAutomationSchema,
+        params: getAutomationParamsSchema,
+      },
+    },
+    updateAutomationController
+  );
+  
   // Delete automation
   app.delete(
-    "/automation-rules/:id",
+    "/automation/:id",
     {
       schema: {
         params: getAutomationParamsSchema,

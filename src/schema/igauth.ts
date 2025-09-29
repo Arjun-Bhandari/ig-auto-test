@@ -5,3 +5,9 @@ export const callbackBodySchema = z.object({
 });
 
 export type CallbackBody = z.infer<typeof callbackBodySchema>;
+
+export const getIgUserParamsSchema = z.object({
+  igUserId: z.string().min(1, "Instagram User Id is Required")
+});
+
+export type GetIgUserParams = z.infer<typeof getIgUserParamsSchema>;

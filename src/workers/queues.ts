@@ -148,35 +148,7 @@ export const enqueueDm = async (payload: DmJobPayload, opts?: JobsOptions) => {
   }
 };
 
-// export const startWorkers = () => {
-//   try {
-//     logger.info("Starting workers...");
-//     ensureQueues();
 
-//     if (!commentWorker) {
-//       logger.info("Creating comment worker...");
-//       commentWorker = new Worker<CommentJobPayload>("comments", runCommentProcessor, { connection: connection! ,concurrency:5});
-//       commentWorker.on("completed", (job) => logger.info({ jobId: job.id }, "Comment Job Completed"));
-//       commentWorker.on("failed", (job, err) => logger.error({ jobId: job?.id, err }, "Comment Job Failed"));
-//       commentWorker.on("ready", () => logger.info("Comment worker is ready"));
-//       commentWorker.on("error", (err) => logger.error({ err }, "Comment worker error"));
-//       logger.info("Comment worker created successfully");
-//     }
-//     if (!dmWorker) {
-//       logger.info("Creating DM worker...");
-//       dmWorker = new Worker<DmJobPayload>("dms", runDmProcessor, { connection: connection!, concurrency:5 });
-//       dmWorker.on("completed", (job) => logger.info({ jobId: job.id }, "DM Job Completed"));
-//       dmWorker.on("failed", (job, err) => logger.error({ jobId: job?.id, err }, "DM Job Failed"));
-//       dmWorker.on("ready", () => logger.info("DM worker is ready"));
-//       dmWorker.on("error", (err) => logger.error({ err }, "DM worker error"));
-//       logger.info("DM worker created successfully");
-//     }
-//     logger.info("Workers started successfully");
-//   } catch (error) {
-//     logger.error({ error }, "Failed to start workers");
-//     throw error;
-//   }
-// };
 export const startWorkers = () => {
   try {
     logger.info("Starting workers...");

@@ -82,7 +82,7 @@ export interface AutomationCreateInput {
   mediaId: string;
   name: string;
   rule: AutomationRulePayload;
- 
+  campaignType:string;
   status?: AutomationStatus;
   isActive?: boolean;
 }
@@ -92,6 +92,7 @@ export interface AutomationRecord {
   igUserId: string; 
   mediaId: string;
   name: string;
+  campaignType:string;
   rule: AutomationRulePayload;
   status: AutomationStatus;
   isActive: boolean;
@@ -108,7 +109,7 @@ export interface AutomationUpdateInput {
   id: string;
   name?: string;
   rule?: AutomationRulePayload;
- 
+  campaignType?:string;
   status?: AutomationStatus;
   isActive?: boolean;
 }

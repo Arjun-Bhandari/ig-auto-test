@@ -62,7 +62,7 @@ export const createAutomationRule = async (params: AutomationCreateInput): Promi
       igUserId: BigInt(params.igUserId),
       name: params.name,
       mediaId: params.mediaId,
-     
+      campaignType:params.campaignType,
       rule: params.rule as unknown as any,
       status: params.status || "DRAFT",
       isActive: params.isActive || false,
@@ -119,7 +119,7 @@ export const updateAutomation = async (
     data: {
       name: updateData.name,
       rule: updateData.rule as unknown as any,
-
+      campaignType:updateData.campaignType,
       status: updateData.status,
       isActive: updateData.isActive,
     },
@@ -175,7 +175,7 @@ const mapAutomationRecord = (record: any): AutomationRecord => ({
   igUserId: record.igUserId.toString(),
   mediaId: record.mediaId,
   name: record.name,
-
+  campaignType:record.campaignType,
   rule: record.rule as unknown as AutomationRulePayload,
 
   status: record.status,

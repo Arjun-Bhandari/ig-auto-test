@@ -1,62 +1,35 @@
-
-// import { FastifyReply, FastifyRequest } from "fastify";
-// import { CreateAutomationBody } from "../schema/automation";
-// import { createAutomationRule, listAutomationRulesByUser } from "../services/automation.services";
-
-// export const createAutomationController = async (
-//   request: FastifyRequest<{ Body: CreateAutomationBody }>,
-//   reply: FastifyReply
-// ) => {
-//   const { igUserId, mediaId, templateId, rule, name } = request.body;
-  
-//   const created = await createAutomationRule({
-//     igUserId,
-//     mediaId,
-//     name,
-//     templateId,
-//     rule,
-//   });
-//   return reply.status(201).send({ success: true, data: created });
-// };
-
-// export const listAutomationByUserController = async (
-//   request: FastifyRequest<{ Querystring: { igUserId: string } }>,
-//   reply: FastifyReply
-// ) => {
-//   const { igUserId } = request.query;
-//   const rows = await listAutomationRulesByUser(BigInt(igUserId));
-//   return reply.send({ success: true, data: rows });
-// };
-
-
-
 import { FastifyReply, FastifyRequest } from "fastify";
-import { 
-  CreateAutomationBody, 
-  ListAutomationQuery, 
+import {
+  CreateAutomationBody,
+  ListAutomationQuery,
   UpdateAutomationStatusBody,
   GetAutomationParams,
-  UpdateExecutionBody
+  UpdateExecutionBody,
+  UpdateAutomationBody,
 } from "../schema/automation";
-import { 
-  createAutomationRule, 
+import {
+  createAutomationRule,
   listAutomationRulesByUser,
   updateAutomationStatus,
   getAutomationById,
   updateAutomationExecution,
-  deleteAutomation
+  deleteAutomation,
+  updateAutomation,
 } from "../services/automation.services";
+import { logger } from "../config/logger";
 
 export const createAutomationController = async (
   request: FastifyRequest<{ Body: CreateAutomationBody }>,
   reply: FastifyReply
 ) => {
-  const { igUserId, mediaId, rule, name, status, isActive } = request.body;
-  
+  const { igUserId, mediaId, rule, name, status, isActive, campaignType } =
+    request.body;
+
   const created = await createAutomationRule({
     igUserId: igUserId.toString(),
     mediaId,
     name,
+    campaignType,
     rule,
     status,
     isActive,
@@ -79,27 +52,34 @@ export const getAutomationController = async (
 ) => {
   const { id } = request.params;
   const automation = await getAutomationById(id);
-  
+
   if (!automation) {
-    return reply.status(404).send({ success: false, error: "Automation not found" });
+    return reply
+      .status(404)
+      .send({ success: false, error: "Automation not found" });
   }
-  
+
   return reply.send({ success: true, data: automation });
 };
 
 export const updateAutomationStatusController = async (
-  request: FastifyRequest<{ Body: UpdateAutomationStatusBody, Params: GetAutomationParams }>,
+  request: FastifyRequest<{
+    Body: UpdateAutomationStatusBody;
+    Params: GetAutomationParams;
+  }>,
   reply: FastifyReply
 ) => {
-  const {  status, isActive } = request.body;
+  const { status, isActive } = request.body;
   const { id } = request.params;
-  
+
   const updated = await updateAutomationStatus(id, { status, isActive });
-  
+
   if (!updated) {
-    return reply.status(404).send({ success: false, error: "Automation not found" });
+    return reply
+      .status(404)
+      .send({ success: false, error: "Automation not found" });
   }
-  
+
   return reply.send({ success: true, data: updated });
 };
 
@@ -107,8 +87,15 @@ export const updateAutomationExecutionController = async (
   request: FastifyRequest<{ Body: UpdateExecutionBody }>,
   reply: FastifyReply
 ) => {
-  const { id, lastExecutedAt, executionCount, errorCount, lastErrorAt, lastErrorMessage } = request.body;
-  
+  const {
+    id,
+    lastExecutedAt,
+    executionCount,
+    errorCount,
+    lastErrorAt,
+    lastErrorMessage,
+  } = request.body;
+
   const updated = await updateAutomationExecution(id, {
     id,
     lastExecutedAt,
@@ -117,11 +104,38 @@ export const updateAutomationExecutionController = async (
     lastErrorAt,
     lastErrorMessage,
   });
-  
+
   if (!updated) {
-    return reply.status(404).send({ success: false, error: "Automation not found" });
+    return reply
+      .status(404)
+      .send({ success: false, error: "Automation not found" });
   }
-  
+
+  return reply.send({ success: true, data: updated });
+};
+
+export const updateAutomationController = async (
+  request: FastifyRequest<{
+    Body: UpdateAutomationBody;
+    Params: GetAutomationParams;
+  }>,
+  reply: FastifyReply
+) => {
+  const { id } = request.params;
+  const { name, rule, status, isActive, campaignType } = request.body;
+  logger.info(`Updating automation ${id} with data: ${JSON.stringify({ name, rule, status, isActive, campaignType })}`);
+  const updated = await updateAutomation(id, {
+    name,
+    rule,
+    status,
+    isActive,
+    campaignType,
+  });
+  if (!updated) {
+    return reply
+      .status(404)
+      .send({ success: false, error: "Automation not found" });
+  }
   return reply.send({ success: true, data: updated });
 };
 
@@ -130,12 +144,17 @@ export const deleteAutomationController = async (
   reply: FastifyReply
 ) => {
   const { id } = request.params;
-  
+
   const deleted = await deleteAutomation(id);
-  
+
   if (!deleted) {
-    return reply.status(404).send({ success: false, error: "Automation not found" });
+    return reply
+      .status(404)
+      .send({ success: false, error: "Automation not found" });
   }
-  
-  return reply.send({ success: true, message: "Automation deleted successfully" });
+
+  return reply.send({
+    success: true,
+    message: "Automation deleted successfully",
+  });
 };

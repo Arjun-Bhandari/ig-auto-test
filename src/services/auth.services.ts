@@ -173,7 +173,7 @@ export const exchangeCodeForIgTokens = async (
   }
 };
 
-export const getSixtyDaysLivedIgAccessToken = async (
+export const refreshLongLivedIgAccessToken = async (
   longLivedAccesstoken: string,
   igUserId: number
 ): Promise<IgSixtyDaysTokenResponse> => {
@@ -222,3 +222,32 @@ export const getSixtyDaysLivedIgAccessToken = async (
     throw error;
   }
 };
+
+export const getIgUserService = async(igUserId:bigint)=>{
+if(!igUserId){
+  throw new Error("User id is required to fetch instagram users data")
+}
+  try{
+const user = await prisma.igUser.findUnique({
+  where:{igUserId:igUserId},
+  select:{
+id:true,
+igUserId:true,
+username:true,
+name:true,
+profilePictureUrl:true,
+accountType:true,
+permissions:true,
+tokenExpireDay:true,
+tokenExpireIn:true,
+  }
+})
+if(!user){
+  throw new Error("User not found")
+}
+return user;
+  }catch(error){
+throw new Error(`Error fetching instagram users data: ${error instanceof Error ? error.message : "Unknown error"}`)
+  }
+
+}

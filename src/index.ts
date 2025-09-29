@@ -44,9 +44,7 @@ const startServer = async()=>{
     fastify.setSerializerCompiler(serializerCompiler);
     fastify.register(igAuthroute, { prefix: "/api" });
     fastify.register(igMediaRoute, { prefix: "/api" });
-    // fastify.register(presetsRoute, { prefix: "/api" });
     fastify.register(automationRoute, { prefix: "/api" });
-    // fastify.register(templatesRoute, { prefix: "/api" });
     fastify.register(webhookRoute, { prefix: "/api" });
     fastify.register(webhookSubscribeRoute, { prefix: "/api" });
     startBullBoard(fastify);
