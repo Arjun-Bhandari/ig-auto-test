@@ -274,18 +274,7 @@ export const startBullBoard = (app: FastifyInstance) => {
   logger.info("Bull Dashboard Setup at /queues")
 };
 
-// export const stopWorkers = async () => {
-//   await commentWorker?.close();
-//   await dmWorker?.close();
-//   await commentQueue?.close();
-//   await dmQueue?.close();
-//   await connection?.quit();
-//   commentWorker = null;
-//   dmWorker = null;
-//   commentQueue = null;
-//   dmQueue = null;
-//   connection = null;
-// };
+
 
 export const stopWorkers = async () => {
   logger.info("Stopping workers...");

@@ -33,11 +33,7 @@ const matchText = (
 
   return false;
 
-  // if (contains && contains.some(k => k && text.toLowerCase().includes(k.toLowerCase()))) return true;
-  // if (regex) {
-  //   try { if (new RegExp(regex, "i").test(text)) return true; } catch {}
-  // }
-  // return false;
+
 };
 
 const replyToComment = async (
