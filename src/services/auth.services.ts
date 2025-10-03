@@ -125,7 +125,6 @@ export const exchangeCodeForIgTokens = async (
     const tokenExpireAt = new Date(
       tokenCreatedAt.getTime() + longLivedToken.expires_in * 1000
     );
-
     // Db insert Here
     const dbUsers = await prisma.igUser.upsert({
       where: { igUserId: BigInt(userData.user_id) },

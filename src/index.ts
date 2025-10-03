@@ -6,7 +6,6 @@ import { automationRoute } from "./routes/automation.routes";
 
 import fastifyCors from '@fastify/cors'
 import { webhookRoute } from "./routes/webhook.routes";
-import { webhookSubscribeRoute } from "./routes/webhook-subscribe.routes";
 import { startBullBoard,startWorkers, stopWorkers } from "./workers/queues";
 import {
   ZodTypeProvider,
@@ -45,8 +44,7 @@ const startServer = async()=>{
     fastify.register(igMediaRoute, { prefix: "/api" });
     fastify.register(automationRoute, { prefix: "/api" });
     fastify.register(webhookRoute, { prefix: "/api" });
-    fastify.register(webhookSubscribeRoute, { prefix: "/api" });
-    // startBullBoard(fastify);
+    startBullBoard(fastify);
     
     
     fastify.get("/", (request, reply) => {
@@ -64,7 +62,7 @@ const startServer = async()=>{
       };
     });
     
-    // startWorkers();
+    startWorkers();
     await fastify.listen({port:env.PORT || 5000, host:"0.0.0.0"})
     logger.info(`Server running on port ${env.PORT}`);
     logger.info(`Bull Dashboard available at http://localhost:${env.PORT}/queues`);

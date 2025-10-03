@@ -17,6 +17,7 @@ import {
   updateAutomation,
 } from "../services/automation.services";
 import { logger } from "../config/logger";
+import { manageWebhookSubscription } from "../services/webhook-subscibe.services";
 
 export const createAutomationController = async (
   request: FastifyRequest<{ Body: CreateAutomationBody }>,
@@ -25,7 +26,7 @@ export const createAutomationController = async (
   const { igUserId, mediaId, rule, name, status, isActive, campaignType } =
     request.body;
 
-  const created = await createAutomationRule({
+  const automation = await createAutomationRule({
     igUserId: igUserId.toString(),
     mediaId,
     name,
@@ -34,7 +35,16 @@ export const createAutomationController = async (
     status,
     isActive,
   });
-  return reply.status(201).send({ success: true, data: created });
+
+  if(automation.status === "ACTIVE"){
+    try{
+      await manageWebhookSubscription(automation.igUserId.toString());
+    }catch(error){
+      logger.error(`Error managing webhook subscription for automation ${automation.id}: ${error}`);
+    }
+    
+  }
+  return reply.status(201).send({ success: true, data: automation });
 };
 
 export const listAutomationByUserController = async (
@@ -73,13 +83,21 @@ export const updateAutomationStatusController = async (
   const { id } = request.params;
 
   const updated = await updateAutomationStatus(id, { status, isActive });
-
+  logger.info(`Updating automation status to Data ${updated}`);
   if (!updated) {
     return reply
       .status(404)
       .send({ success: false, error: "Automation not found" });
   }
 
+  try {
+    const webhookResult = await manageWebhookSubscription(updated.igUserId.toString());
+    logger.info(`Webhook management result: ${webhookResult}`);
+    console.log('Webhook management result:', webhookResult);
+  } catch (error) {
+  logger.error(`Error managing webhook subscription for automation while updating status: ${updated.id}: ${error}`);
+  }
+ 
   return reply.send({ success: true, data: updated });
 };
 
@@ -136,6 +154,13 @@ export const updateAutomationController = async (
       .status(404)
       .send({ success: false, error: "Automation not found" });
   }
+  if(updated.status === "ACTIVE"){
+    try{
+      await manageWebhookSubscription(updated.igUserId.toString());
+    }catch(error){
+      logger.error(`Error managing webhook subscription for automation while updating: ${updated.id}: ${error}`);
+    }
+  }
   return reply.send({ success: true, data: updated });
 };
 
@@ -146,13 +171,20 @@ export const deleteAutomationController = async (
   const { id } = request.params;
 
   const deleted = await deleteAutomation(id);
-
+const automation = await getAutomationById(id);
   if (!deleted) {
     return reply
       .status(404)
       .send({ success: false, error: "Automation not found" });
   }
-
+  if(automation){
+  try {
+    const webhookResult = await manageWebhookSubscription(automation.igUserId.toString());
+    logger.info(`Webhook management result: ${webhookResult}`);
+  } catch (error) {
+    logger.error(`Error managing webhook subscription for automation while deleting: ${automation.id}: ${error}`);
+  }
+}
   return reply.send({
     success: true,
     message: "Automation deleted successfully",

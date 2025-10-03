@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// Verification query params from Meta (hub.*)
+
 export const webhookVerifyQuerySchema = z.object({
   "hub.mode": z.string().optional(),
   "hub.verify_token": z.string().optional(),
